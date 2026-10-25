@@ -40,5 +40,6 @@ export const specSchema = obj({
   },
   out_of_scope: strArray,
   risks: strArray,
+  team_roles: { type: "array", items: obj({ role: str, tasks: strArray }) },
   first_prompt: str,
 });

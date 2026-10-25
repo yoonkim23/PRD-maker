@@ -148,6 +148,7 @@ Step 2에서는 3번(저장)을 빼고 `{ "spec": ... }`만 돌려준다. Step 3
 | `api_endpoints` | `{ method: "GET" \| "POST" \| "PATCH" \| "DELETE", path, description }[]` | 2~5개 |
 | `out_of_scope` | string[] | 일부러 안 만드는 것 |
 | `risks` | string[] | 2~3개 |
+| `team_roles` | `{ role, tasks: string[] }[]` | 2~4개, 역할별로 기간 안에 맡을 일 (내 버전 8-3) |
 | `first_prompt` | string | Claude Code/Codex에 바로 넣을 첫 프롬프트 |
 
 `strict: true` 규칙 (어기면 OpenAI가 400 에러를 준다):

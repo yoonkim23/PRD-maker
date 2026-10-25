@@ -1,5 +1,20 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { specToMarkdown } from "@/lib/markdown";
 import type { Spec } from "@/lib/types";
+
+// 내 버전 8-4: PRD를 <제품명>.md 파일로 저장
+function downloadMarkdown(spec: Spec) {
+  const blob = new Blob([specToMarkdown(spec)], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${spec.product_name.replace(/[\\/:*?"<>|]/g, "").trim() || "PRD"}.md`;
+  a.click();
+  // 바로 revoke하면 일부 브라우저(Safari/Firefox)에서 다운로드가 끊긴다
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -30,15 +45,24 @@ export default function SpecView({ spec }: { spec: Spec }) {
           <h2 className="text-2xl font-bold break-words">{spec.product_name}</h2>
           <p className="mt-1 text-sm text-muted break-words">{spec.one_liner}</p>
         </div>
-        {/* P1: lib/markdown.ts의 specToMarkdown()이 생기면 연결 */}
-        <button
-          type="button"
-          disabled
-          title="준비 중"
-          className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-muted disabled:cursor-not-allowed"
-        >
-          마크다운 복사
-        </button>
+        <div className="flex shrink-0 flex-col gap-1.5 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => downloadMarkdown(spec)}
+            className="rounded-lg border border-accent px-3 py-1.5 text-xs font-medium text-accent"
+          >
+            .md 다운로드
+          </button>
+          {/* P1 */}
+          <button
+            type="button"
+            disabled
+            title="준비 중"
+            className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted disabled:cursor-not-allowed"
+          >
+            마크다운 복사
+          </button>
+        </div>
       </header>
 
       <Section label="문제">
@@ -123,6 +147,23 @@ export default function SpecView({ spec }: { spec: Spec }) {
           ))}
         </ul>
       </Section>
+
+      {spec.team_roles?.length > 0 && (
+        <Section label="팀 역할 분담">
+          <ul className="flex flex-col gap-3 text-sm">
+            {spec.team_roles.map((r) => (
+              <li key={r.role}>
+                <p className="font-medium">{r.role}</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
+                  {r.tasks.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <Section label="첫 프롬프트">
         <pre className="whitespace-pre-wrap break-words rounded-lg bg-bg p-3 font-mono text-xs leading-5">

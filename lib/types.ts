@@ -15,6 +15,7 @@ export type Spec = {
   }[];
   out_of_scope: string[];
   risks: string[];
+  team_roles: { role: string; tasks: string[] }[];
   first_prompt: string;
 };
 
