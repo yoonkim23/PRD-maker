@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { generateSpec } from "@/lib/openai";
 import { getSupabase } from "@/lib/supabase";
 import { TIMEFRAMES, type Spec, type SpecInput, type Timeframe } from "@/lib/types";
 
@@ -25,24 +26,6 @@ function parseInput(body: unknown): SpecInput | string {
   };
 }
 
-// TODO(Step 2): lib/openai.ts의 generateSpec(input)으로 교체. 실패 시 502.
-async function generateSpec(input: SpecInput): Promise<Spec> {
-  return {
-    product_name: input.title,
-    one_liner: input.problem,
-    problem: input.problem,
-    target_users: [],
-    core_features: [],
-    user_flow: [],
-    screens: [],
-    data_model: [],
-    api_endpoints: [],
-    out_of_scope: [],
-    risks: [],
-    first_prompt: "",
-  };
-}
-
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -62,26 +45,8 @@ export async function POST(request: Request) {
     return errorResponse("PRD 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.", 502);
   }
 
-  try {
-    const { data, error } = await getSupabase()
-      .from("specs")
-      .insert({
-        title: input.title,
-        problem: input.problem,
-        target: input.target || null,
-        timeframe: input.timeframe,
-        product_name: spec.product_name,
-        spec,
-      })
-      .select("id, created_at")
-      .single();
-    if (error) throw error;
-
-    return Response.json({ id: data.id, created_at: data.created_at, spec }, { status: 201 });
-  } catch (e) {
-    console.error("insert specs failed", e);
-    return errorResponse("PRD를 저장하지 못했습니다.", 500);
-  }
+  // Step 2: 저장 없이 결과만. Step 3에서 specs insert를 붙이고 { id, created_at, spec }으로 바꾼다.
+  return Response.json({ spec }, { status: 201 });
 }
 
 export async function GET() {

@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import SpecView from "@/components/SpecView";
-import { mockSpec } from "@/lib/mock-spec";
 import { TIMEFRAMES, type Spec, type Timeframe } from "@/lib/types";
 
 const inputClass =
@@ -27,10 +26,23 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setSpec(null);
-    // Step 1: API 대신 1초 뒤 가짜 데이터. Step 2에서 fetch("/api/specs")로 교체.
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSpec(mockSpec({ title: title.trim(), problem: problem.trim(), target: target.trim(), timeframe }));
-    setLoading(false);
+    try {
+      const res = await fetch("/api/specs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, problem, target, timeframe }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "PRD를 만들지 못했습니다.");
+        return;
+      }
+      setSpec(data.spec);
+    } catch {
+      setError("서버에 연결하지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
